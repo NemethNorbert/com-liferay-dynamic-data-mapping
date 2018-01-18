@@ -759,10 +759,18 @@ AUI.add(
 
 						var localizationMap = instance.get('localizationMap');
 
+						var translationManagerId = instance.get('portletNamespace') + 'translationManager';
+
+						var translationManager = document.getElementById(translationManagerId);
+
 						var value = instance.getValue();
 
 						if (AObject.keys(localizationMap).length != 0) {
 							this.removeNotAvailableLocales(localizationMap);
+						}
+
+						if (translationManager) {
+							translationManager.classList.add('clickDisabled');
 						}
 
 						if (instance.get('localizable')) {
@@ -2719,6 +2727,41 @@ AUI.add(
 						);
 					},
 
+					editorReadyCheck: function(instance, value, timeoutms) {
+						var container = instance.get('container');
+
+						var editor = instance.getEditor();
+
+						var localizationMap = instance.get("localizationMap");
+
+						var translationManagerId = instance.get('portletNamespace') + 'translationManager';
+
+						var translationManager = document.getElementById(translationManagerId);
+
+						if (editor.instanceReady) {
+							if (translationManager) {
+								setTimeout(function() {
+									translationManager.classList.remove('clickDisabled');
+								}, 350);
+							}
+
+							if (value === localizationMap[instance.get('displayLocale')]) {
+								editor.setHTML(value);
+							}
+							else {
+								return;
+							}
+						}
+						else if ((timeoutms -= 100) < 0) {
+							return;
+						}
+						else {
+							setTimeout(function() {
+								instance.editorReadyCheck(instance, value, timeoutms);
+							}, 100);
+						}
+					},
+
 					getEditor: function() {
 						var instance = this;
 
@@ -2738,11 +2781,24 @@ AUI.add(
 
 						var editor = instance.getEditor();
 
+						var translationManagerId = instance.get('portletNamespace') + 'translationManager';
+
+						var translationManager = document.getElementById(translationManagerId);
+
 						if (isNode(editor)) {
 							TextHTMLField.superclass.setValue.apply(instance, arguments);
 						}
-						else {
+						else if (editor.instanceReady) {
+							if (translationManager) {
+								setTimeout(function() {
+									translationManager.classList.remove('clickDisabled');
+								}, 350);
+							}
+
 							editor.setHTML(value);
+						}
+						else {
+							instance.editorReadyCheck(instance, value, 1000);
 						}
 					},
 

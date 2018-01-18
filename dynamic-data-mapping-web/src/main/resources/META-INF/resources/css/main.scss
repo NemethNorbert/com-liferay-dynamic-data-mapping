@@ -1,6 +1,10 @@
 @import "bourbon";
 @import "mixins";
 
+.clickDisabled {
+pointer-events: none;
+}
+
 .color-cell-editor-hidden {
 	display: none;
 }
